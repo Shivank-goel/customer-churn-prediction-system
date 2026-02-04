@@ -1,4 +1,6 @@
 import pandas as pd
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
@@ -32,6 +34,17 @@ def train_model():
         max_iter=1000,
         C=0.5,
         penalty ="l2")
+    
+    tree_model = DecisionTreeClassifier(
+        max_depth=5,
+        random_state=42
+    )
+
+    rf_model = RandomForestClassifier(
+        n_estimators=100,
+        max_depth=7,
+        random_state=42
+    )
 
     # Pipeline
     pipeline = Pipeline(
@@ -41,16 +54,44 @@ def train_model():
         ]
     )
 
+    tree_pipeline = Pipeline(
+        steps=[
+            ("preprocessing", preprocessor),
+            ("model", tree_model),
+        ]
+    )
+
+    rf_pipeline = Pipeline(
+        steps=[
+            ("preprocessing", preprocessor),
+            ("model", rf_model),
+        ]
+    )
+
     # Train
     pipeline.fit(X_train, y_train)
+    tree_pipeline.fit(X_train, y_train)
+    rf_pipeline.fit(X_train, y_train)
+
+
 
     # Predict
     y_pred = pipeline.predict(X_test)
+    tree_preds = tree_pipeline.predict(X_test)
+    rf_preds = rf_pipeline.predict(X_test)
 
     # Evaluation
     print("Accuracy:", accuracy_score(y_test, y_pred))
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred))
+    print("\nDecision Tree Classifier:")
+    print("Accuracy:", accuracy_score(y_test, tree_preds))
+    print("\nClassification Report:")
+    print(classification_report(y_test, tree_preds))
+    print("\nRandom Forest Classifier:")
+    print("Accuracy:", accuracy_score(y_test, rf_preds))
+    print("\nClassification Report:")
+    print(classification_report(y_test, rf_preds))
 
 
 if __name__ == "__main__":
