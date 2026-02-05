@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
@@ -36,14 +37,14 @@ def train_model():
         penalty ="l2")
     
     tree_model = DecisionTreeClassifier(
-        max_depth=5,
+        max_depth=10,
         random_state=42
     )
 
     rf_model = RandomForestClassifier(
-        n_estimators=100,
-        max_depth=7,
-        random_state=42
+        n_estimators=200,
+        max_depth=10,
+        class_weight="balanced"
     )
 
     # Pipeline
@@ -68,12 +69,14 @@ def train_model():
         ]
     )
 
+   
+
     # Train
     pipeline.fit(X_train, y_train)
     tree_pipeline.fit(X_train, y_train)
     rf_pipeline.fit(X_train, y_train)
 
-
+    
 
     # Predict
     y_pred = pipeline.predict(X_test)
@@ -92,6 +95,22 @@ def train_model():
     print("Accuracy:", accuracy_score(y_test, rf_preds))
     print("\nClassification Report:")
     print(classification_report(y_test, rf_preds))
+
+     #Feature Importance (Random Forest)
+
+    feature_names = (
+        rf_pipeline.named_steps["preprocessing"]
+        .named_transformers_["cat"]
+        .get_feature_names_out(cat_cols)
+    )
+    all_features = np.concatenate([feature_names, num_cols])
+
+    importances = rf_model.feature_importances_
+    indices = np.argsort(importances)[::-1]
+
+    print("\nTop 10 Important Features (Random Forest):")
+    for i in indices[:10]:
+        print(f"{all_features[i]}: {importances[i]:.4f}")
 
 
 if __name__ == "__main__":
